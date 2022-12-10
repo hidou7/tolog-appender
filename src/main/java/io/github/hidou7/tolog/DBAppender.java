@@ -1,12 +1,8 @@
 package io.github.hidou7.tolog;
 
-import ch.qos.logback.classic.db.DBHelper;
-import ch.qos.logback.classic.db.names.ColumnName;
-import ch.qos.logback.classic.db.names.DBNameResolver;
-import ch.qos.logback.classic.db.names.DefaultDBNameResolver;
-import ch.qos.logback.classic.db.names.TableName;
 import ch.qos.logback.classic.spi.*;
 import ch.qos.logback.core.CoreConstants;
+import io.github.hidou7.tolog.classic.*;
 import io.github.hidou7.tolog.util.SpringUtil;
 
 import java.lang.reflect.Method;
@@ -94,7 +90,7 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.CALLER_CLASS)).append(", ");
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.CALLER_METHOD)).append(", ");
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.CALLER_LINE)).append(", ");
-        sqlBuilder.append("app_name").append(", ");
+        sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.APP_NAME)).append(", ");
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.EVENT_ID)).append(") ");
         sqlBuilder.append("VALUES (?, ?, ? ,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         return sqlBuilder.toString();

@@ -1,4 +1,4 @@
-package io.github.hidou7.tolog;
+package io.github.hidou7.tolog.classic;
 
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import ch.qos.logback.core.db.ConnectionSource;
