@@ -7,7 +7,7 @@ import ch.qos.logback.classic.db.names.DefaultDBNameResolver;
 import ch.qos.logback.classic.db.names.TableName;
 import ch.qos.logback.classic.spi.*;
 import ch.qos.logback.core.CoreConstants;
-import cn.hutool.extra.spring.SpringUtil;
+import io.github.hidou7.tolog.util.SpringUtil;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;

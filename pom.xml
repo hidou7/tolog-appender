@@ -6,7 +6,7 @@
 
     <groupId>io.github.hidou7</groupId>
     <artifactId>tolog-appender</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>tolog-appender</name>
     <description>Implementation of appender based on logback</description>
@@ -22,12 +22,6 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
             <version>1.2.7</version>
-        </dependency>
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
-            <version>5.7.7</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
