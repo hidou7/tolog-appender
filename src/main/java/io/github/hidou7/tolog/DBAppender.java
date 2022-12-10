@@ -44,12 +44,11 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
     static final int CALLER_CLASS_INDEX = 12;
     static final int CALLER_METHOD_INDEX = 13;
     static final int CALLER_LINE_INDEX = 14;
-    static final int APP_NAME_INDEX = 15; // 服务名称
+    static final int APP_NAME_INDEX = 15;
     static final int EVENT_ID_INDEX = 16;
 
     static final StackTraceElement EMPTY_CALLER_DATA = CallerData.naInstance();
 
-    // 获取服务名称
     static String APP_NAME = null;
 
     static {
@@ -186,9 +185,6 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
         }
     }
 
-    /**
-     * sql参数赋值
-     */
     String bindCallerDataWithPreparedStatement(PreparedStatement stmt, StackTraceElement[] callerDataArray) throws SQLException {
 
         StackTraceElement caller = extractFirstCaller(callerDataArray);
