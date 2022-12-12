@@ -14,11 +14,8 @@ import java.sql.PreparedStatement;
 public abstract class DBAppenderBase<E> extends UnsynchronizedAppenderBase<E> {
 
     protected ConnectionSource connectionSource;
-    protected boolean cnxSupportsGetGeneratedKeys = false;
     protected boolean cnxSupportsBatchUpdates = false;
     protected SQLDialect sqlDialect;
-
-    protected abstract Method getGeneratedKeysMethod();
 
     protected abstract String getInsertSQL();
 
@@ -30,15 +27,10 @@ public abstract class DBAppenderBase<E> extends UnsynchronizedAppenderBase<E> {
         }
 
         sqlDialect = DBUtil.getDialectFromCode(connectionSource.getSQLDialectCode());
-        if (getGeneratedKeysMethod() != null) {
-            cnxSupportsGetGeneratedKeys = connectionSource.supportsGetGeneratedKeys();
-        } else {
-            cnxSupportsGetGeneratedKeys = false;
-        }
         cnxSupportsBatchUpdates = connectionSource.supportsBatchUpdates();
-        if (!cnxSupportsGetGeneratedKeys && (sqlDialect == null)) {
+        if (sqlDialect == null) {
             throw new IllegalStateException(
-                    "DBAppender cannot function if the JDBC driver does not support getGeneratedKeys method *and* without a specific SQL dialect");
+                    "DBAppender cannot function without a specific SQL dialect");
         }
 
         // all nice and dandy on the eastern front
@@ -68,16 +60,7 @@ public abstract class DBAppenderBase<E> extends UnsynchronizedAppenderBase<E> {
             connection = connectionSource.getConnection();
             connection.setAutoCommit(false);
 
-            if (cnxSupportsGetGeneratedKeys) {
-                String EVENT_ID_COL_NAME = "EVENT_ID";
-                // see
-                if (connectionSource.getSQLDialectCode() == SQLDialectCode.POSTGRES_DIALECT) {
-                    EVENT_ID_COL_NAME = EVENT_ID_COL_NAME.toLowerCase();
-                }
-                insertStatement = connection.prepareStatement(getInsertSQL(), new String[] { EVENT_ID_COL_NAME });
-            } else {
-                insertStatement = connection.prepareStatement(getInsertSQL());
-            }
+            insertStatement = connection.prepareStatement(getInsertSQL());
             String eventId = subAppend(eventObject, connection, insertStatement);
             secondarySubAppend(eventObject, connection, eventId);
             connection.commit();

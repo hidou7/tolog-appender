@@ -5,13 +5,9 @@ import ch.qos.logback.core.CoreConstants;
 import io.github.hidou7.tolog.classic.*;
 import io.github.hidou7.tolog.util.SpringUtil;
 
-import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import static ch.qos.logback.core.db.DBHelper.closeStatement;
@@ -19,10 +15,8 @@ import static ch.qos.logback.core.db.DBHelper.closeStatement;
 
 public class DBAppender extends DBAppenderBase<ILoggingEvent> {
 
-    protected String insertPropertiesSQL;
     protected String insertExceptionSQL;
     protected String insertSQL;
-    protected static final Method GET_GENERATED_KEYS_METHOD;
 
     private DBNameResolver dbNameResolver;
 
@@ -47,18 +41,6 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
 
     static String APP_NAME = null;
 
-    static {
-        // PreparedStatement.getGeneratedKeys() method was added in JDK 1.4
-        Method getGeneratedKeysMethod;
-        try {
-            // the
-            getGeneratedKeysMethod = PreparedStatement.class.getMethod("getGeneratedKeys", (Class[]) null);
-        } catch (Exception ex) {
-            getGeneratedKeysMethod = null;
-        }
-        GET_GENERATED_KEYS_METHOD = getGeneratedKeysMethod;
-    }
-
     public void setDbNameResolver(DBNameResolver dbNameResolver) {
         this.dbNameResolver = dbNameResolver;
     }
@@ -68,7 +50,6 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
         if (dbNameResolver == null)
             dbNameResolver = new DefaultDBNameResolver();
         insertExceptionSQL = buildInsertExceptionSQL(dbNameResolver);
-        insertPropertiesSQL = buildInsertPropertiesSQL(dbNameResolver);
         insertSQL = buildInsertSQL(dbNameResolver);
         super.start();
     }
@@ -93,16 +74,6 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.APP_NAME)).append(", ");
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.EVENT_ID)).append(") ");
         sqlBuilder.append("VALUES (?, ?, ? ,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        return sqlBuilder.toString();
-    }
-
-    static String buildInsertPropertiesSQL(DBNameResolver dbNameResolver) {
-        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO ");
-        sqlBuilder.append(dbNameResolver.getTableName(TableName.LOGGING_EVENT_PROPERTY)).append(" (");
-        sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.EVENT_ID)).append(", ");
-        sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.MAPPED_KEY)).append(", ");
-        sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.MAPPED_VALUE)).append(") ");
-        sqlBuilder.append("VALUES (?, ?, ?)");
         return sqlBuilder.toString();
     }
 
@@ -134,9 +105,6 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
 
     @Override
     protected void secondarySubAppend(ILoggingEvent event, Connection connection, String eventId) throws Throwable {
-        Map<String, String> mergedMap = mergePropertyMaps(event);
-        insertProperties(mergedMap, connection, eventId);
-
         if (event.getThrowableProxy() != null) {
             insertThrowable(event.getThrowableProxy(), connection, eventId);
         }
@@ -209,61 +177,9 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
         return callerDataArray != null && callerDataArray.length > 0 && callerDataArray[0] != null;
     }
 
-    Map<String, String> mergePropertyMaps(ILoggingEvent event) {
-        Map<String, String> mergedMap = new HashMap<String, String>();
-        // we add the context properties first, then the event properties, since
-        // we consider that event-specific properties should have priority over
-        // context-wide properties.
-        Map<String, String> loggerContextMap = event.getLoggerContextVO().getPropertyMap();
-        Map<String, String> mdcMap = event.getMDCPropertyMap();
-        if (loggerContextMap != null) {
-            mergedMap.putAll(loggerContextMap);
-        }
-        if (mdcMap != null) {
-            mergedMap.putAll(mdcMap);
-        }
-
-        return mergedMap;
-    }
-
-    @Override
-    protected Method getGeneratedKeysMethod() {
-        return GET_GENERATED_KEYS_METHOD;
-    }
-
     @Override
     protected String getInsertSQL() {
         return insertSQL;
-    }
-
-    protected void insertProperties(Map<String, String> mergedMap, Connection connection, String eventId) throws SQLException {
-        Set<String> propertiesKeys = mergedMap.keySet();
-        if (propertiesKeys.size() > 0) {
-            PreparedStatement insertPropertiesStatement = null;
-            try {
-                insertPropertiesStatement = connection.prepareStatement(insertPropertiesSQL);
-
-                for (String key : propertiesKeys) {
-                    String value = mergedMap.get(key);
-
-                    insertPropertiesStatement.setString(1, eventId);
-                    insertPropertiesStatement.setString(2, key);
-                    insertPropertiesStatement.setString(3, value);
-
-                    if (cnxSupportsBatchUpdates) {
-                        insertPropertiesStatement.addBatch();
-                    } else {
-                        insertPropertiesStatement.execute();
-                    }
-                }
-
-                if (cnxSupportsBatchUpdates) {
-                    insertPropertiesStatement.executeBatch();
-                }
-            } finally {
-                closeStatement(insertPropertiesStatement);
-            }
-        }
     }
 
     /**

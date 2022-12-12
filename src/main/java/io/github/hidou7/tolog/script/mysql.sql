@@ -1,8 +1,7 @@
 BEGIN;
 
-DROP TABLE IF EXISTS logging_event_property;
-DROP TABLE IF EXISTS logging_event_exception;
 DROP TABLE IF EXISTS logging_event;
+DROP TABLE IF EXISTS logging_event_exception;
 
 CREATE TABLE logging_event (
 	event_id          VARCHAR(40) NOT NULL PRIMARY KEY,
@@ -24,18 +23,11 @@ CREATE TABLE logging_event (
 );
 
 
-CREATE TABLE logging_event_exception(
+CREATE TABLE logging_event_exception (
     event_id         VARCHAR(40) NOT NULL,
     i                SMALLINT NOT NULL,
     trace_line       TEXT NOT NULL,
     PRIMARY KEY(event_id, i)
-);
-
-CREATE TABLE logging_event_property (
-    event_id	      VARCHAR(40) NOT NULL,
-    mapped_key        VARCHAR(254) NOT NULL,
-    mapped_value      TEXT,
-    PRIMARY KEY(event_id, mapped_key)
 );
 
 COMMIT;
