@@ -27,7 +27,7 @@ CREATE TABLE logging_event (
 CREATE TABLE logging_event_exception(
     event_id         VARCHAR(40) NOT NULL,
     i                SMALLINT NOT NULL,
-    trace_line       VARCHAR(254) NOT NULL,
+    trace_line       TEXT NOT NULL,
     PRIMARY KEY(event_id, i)
 );
 
