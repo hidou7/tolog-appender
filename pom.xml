@@ -6,7 +6,7 @@
 
     <groupId>io.github.hidou7</groupId>
     <artifactId>tolog-appender</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <name>tolog-appender</name>
     <description>Implementation of appender based on logback</description>
