@@ -25,7 +25,7 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
     static final int LOGGER_NAME_INDEX = 3;
     static final int LEVEL_STRING_INDEX = 4;
     static final int THREAD_NAME_INDEX = 5;
-    static final int REFERENCE_FLAG_INDEX = 6;
+    static final int APP_NAME_INDEX = 6;
     static final int ARG0_INDEX = 7;
     static final int ARG1_INDEX = 8;
     static final int ARG2_INDEX = 9;
@@ -34,8 +34,7 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
     static final int CALLER_CLASS_INDEX = 12;
     static final int CALLER_METHOD_INDEX = 13;
     static final int CALLER_LINE_INDEX = 14;
-    static final int APP_NAME_INDEX = 15;
-    static final int EVENT_ID_INDEX = 16;
+    static final int EVENT_ID_INDEX = 15;
 
     static final StackTraceElement EMPTY_CALLER_DATA = CallerData.naInstance();
 
@@ -62,7 +61,7 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.LOGGER_NAME)).append(", ");
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.LEVEL_STRING)).append(", ");
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.THREAD_NAME)).append(", ");
-        sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.REFERENCE_FLAG)).append(", ");
+        sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.APP_NAME)).append(", ");
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.ARG0)).append(", ");
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.ARG1)).append(", ");
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.ARG2)).append(", ");
@@ -71,9 +70,8 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.CALLER_CLASS)).append(", ");
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.CALLER_METHOD)).append(", ");
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.CALLER_LINE)).append(", ");
-        sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.APP_NAME)).append(", ");
         sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.EVENT_ID)).append(") ");
-        sqlBuilder.append("VALUES (?, ?, ? ,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        sqlBuilder.append("VALUES (?, ?, ? ,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         return sqlBuilder.toString();
     }
 
@@ -116,7 +114,10 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
         stmt.setString(LOGGER_NAME_INDEX, event.getLoggerName());
         stmt.setString(LEVEL_STRING_INDEX, event.getLevel().toString());
         stmt.setString(THREAD_NAME_INDEX, event.getThreadName());
-        stmt.setShort(REFERENCE_FLAG_INDEX, DBHelper.computeReferenceMask(event));
+        if(APP_NAME == null){
+            APP_NAME = SpringUtil.getProperty("spring.application.name");
+        }
+        stmt.setString(APP_NAME_INDEX, APP_NAME);
     }
 
     void bindLoggingEventArgumentsWithPreparedStatement(PreparedStatement stmt, Object[] argArray) throws SQLException {
@@ -157,10 +158,6 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
         stmt.setString(CALLER_CLASS_INDEX, caller.getClassName());
         stmt.setString(CALLER_METHOD_INDEX, caller.getMethodName());
         stmt.setString(CALLER_LINE_INDEX, Integer.toString(caller.getLineNumber()));
-        if(APP_NAME == null){
-            APP_NAME = SpringUtil.getProperty("spring.application.name");
-        }
-        stmt.setString(APP_NAME_INDEX, APP_NAME);
         String eventId = UUID.randomUUID().toString().replace("-", "");
         stmt.setString(EVENT_ID_INDEX, eventId);
         return eventId;

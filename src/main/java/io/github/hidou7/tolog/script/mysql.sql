@@ -11,7 +11,6 @@ CREATE TABLE logging_event (
     logger_name       VARCHAR(254) NOT NULL,
     level_string      VARCHAR(254) NOT NULL,
     thread_name       VARCHAR(254),
-    reference_flag    SMALLINT,
     arg0              VARCHAR(254),
     arg1              VARCHAR(254),
     arg2              VARCHAR(254),
