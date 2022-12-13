@@ -15,7 +15,7 @@ tolog-appender是基于logback的appender日志插件，可以将日志信息直
   <dependency>
     <groupId>io.github.hidou7</groupId>
     <artifactId>tolog-appender</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
   </dependency>
 </dependencies>
 
