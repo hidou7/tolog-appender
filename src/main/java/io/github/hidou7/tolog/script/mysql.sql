@@ -4,8 +4,8 @@ DROP TABLE IF EXISTS logging_event;
 DROP TABLE IF EXISTS logging_event_exception;
 
 CREATE TABLE logging_event (
-	event_id          VARCHAR(40) NOT NULL PRIMARY KEY,
-	app_name          VARCHAR(254),
+    event_id          VARCHAR(40) NOT NULL PRIMARY KEY,
+    app_name          VARCHAR(254),
     timestmp         BIGINT NOT NULL,
     formatted_message  TEXT NOT NULL,
     logger_name       VARCHAR(254) NOT NULL,
