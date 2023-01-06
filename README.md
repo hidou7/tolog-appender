@@ -31,7 +31,6 @@ CREATE TABLE logging_event (
     caller_line       CHAR(4) NOT NULL
 );
 
-
 CREATE TABLE logging_event_exception (
     event_id         VARCHAR(40) NOT NULL,
     i                SMALLINT NOT NULL,
