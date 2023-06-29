@@ -6,7 +6,7 @@ tolog-appender是基于logback的appender日志插件，可以将日志信息直
 
 ## 数据库表
 
-在script包下，暂时仅支持Mysql。
+在script包下，仅提供MySQL参考。
 
 ## maven
 
