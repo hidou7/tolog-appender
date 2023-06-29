@@ -15,7 +15,7 @@ tolog-appender是基于logback的appender日志插件，可以将日志信息直
   <dependency>
     <groupId>io.github.hidou7</groupId>
     <artifactId>tolog-appender</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.7</version>
   </dependency>
 </dependencies>
 
@@ -58,10 +58,10 @@ tolog-appender是基于logback的appender日志插件，可以将日志信息直
 
     <property name="log.pattern" value="%d{yyyy-MM-hh HH:mm:ss.SSS} %-5level --- [%thread] %logger{20}.%method: %msg%n"/>
 
-    <springProperty scope="context" name="driverClassName" source="logback.dbappender.driverClassName"/>
-    <springProperty scope="context" name="jdbcUrl" source="logback.dbappender.jdbcUrl"/>
-    <springProperty scope="context" name="username" source="logback.dbappender.username"/>
-    <springProperty scope="context" name="password" source="logback.dbappender.password"/>
+    <springProperty scope="context" name="driverClassName" source="tolog.dbappender.driverClassName"/>
+    <springProperty scope="context" name="jdbcUrl" source="tolog.dbappender.jdbcUrl"/>
+    <springProperty scope="context" name="username" source="tolog.dbappender.username"/>
+    <springProperty scope="context" name="password" source="tolog.dbappender.password"/>
 
     <!-- 输出到控制台 -->
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">

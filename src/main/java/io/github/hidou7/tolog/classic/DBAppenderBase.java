@@ -61,7 +61,7 @@ public abstract class DBAppenderBase<E> extends UnsynchronizedAppenderBase<E> {
             connection.setAutoCommit(false);
 
             insertStatement = connection.prepareStatement(getInsertSQL());
-            String eventId = subAppend(eventObject, connection, insertStatement);
+            Long eventId = subAppend(eventObject, connection, insertStatement);
             secondarySubAppend(eventObject, connection, eventId);
             connection.commit();
         } catch (Throwable sqle) {
@@ -73,9 +73,9 @@ public abstract class DBAppenderBase<E> extends UnsynchronizedAppenderBase<E> {
         }
     }
 
-    protected abstract String subAppend(E eventObject, Connection connection, PreparedStatement statement) throws Throwable;
+    protected abstract Long subAppend(E eventObject, Connection connection, PreparedStatement statement) throws Throwable;
 
-    protected abstract void secondarySubAppend(E eventObject, Connection connection, String eventId) throws Throwable;
+    protected abstract void secondarySubAppend(E eventObject, Connection connection, Long eventId) throws Throwable;
 
     @Override
     public void stop() {

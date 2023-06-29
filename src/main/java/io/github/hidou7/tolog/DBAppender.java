@@ -3,12 +3,13 @@ package io.github.hidou7.tolog;
 import ch.qos.logback.classic.spi.*;
 import ch.qos.logback.core.CoreConstants;
 import io.github.hidou7.tolog.classic.*;
+import io.github.hidou7.tolog.util.IdWorker;
 import io.github.hidou7.tolog.util.SpringUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.UUID;
+import java.util.Random;
 
 import static ch.qos.logback.core.db.DBHelper.closeStatement;
 
@@ -40,7 +41,15 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
     static final StackTraceElement EMPTY_CALLER_DATA = CallerData.naInstance();
 
     static String APP_NAME = null;
-
+    
+    private static final IdWorker idWorker;
+    static {
+        Random random = new Random();
+        int workerId = random.nextInt(32) + 1;
+        int datacenterId = random.nextInt(32) + 1;
+        idWorker = new IdWorker(workerId, datacenterId);
+    }
+    
     public void setDbNameResolver(DBNameResolver dbNameResolver) {
         this.dbNameResolver = dbNameResolver;
     }
@@ -88,13 +97,13 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
     }
 
     @Override
-    public String subAppend(ILoggingEvent event, Connection connection, PreparedStatement insertStatement) throws Throwable {
+    public Long subAppend(ILoggingEvent event, Connection connection, PreparedStatement insertStatement) throws Throwable {
 
         bindLoggingEventWithInsertStatement(insertStatement, event);
         bindLoggingEventArgumentsWithPreparedStatement(insertStatement, event.getArgumentArray());
 
         // This is expensive... should we do it every time?
-        String eventId = bindCallerDataWithPreparedStatement(insertStatement, event.getCallerData());
+        Long eventId = bindCallerDataWithPreparedStatement(insertStatement, event.getCallerData());
 
         int updateCount = insertStatement.executeUpdate();
         if (updateCount != 1) {
@@ -104,7 +113,7 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
     }
 
     @Override
-    protected void secondarySubAppend(ILoggingEvent event, Connection connection, String eventId) throws Throwable {
+    protected void secondarySubAppend(ILoggingEvent event, Connection connection, Long eventId) throws Throwable {
         if (event.getThrowableProxy() != null) {
             insertThrowable(event.getThrowableProxy(), connection, eventId);
         }
@@ -149,7 +158,7 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
         }
     }
 
-    String bindCallerDataWithPreparedStatement(PreparedStatement stmt, StackTraceElement[] callerDataArray) throws SQLException {
+    Long bindCallerDataWithPreparedStatement(PreparedStatement stmt, StackTraceElement[] callerDataArray) throws SQLException {
 
         StackTraceElement caller = extractFirstCaller(callerDataArray);
 
@@ -161,8 +170,8 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
             APP_NAME = SpringUtil.getProperty("spring.application.name");
         }
         stmt.setString(APP_NAME_INDEX, APP_NAME);
-        String eventId = UUID.randomUUID().toString().replace("-", "");
-        stmt.setString(EVENT_ID_INDEX, eventId);
+        long eventId = idWorker.nextId();
+        stmt.setLong(EVENT_ID_INDEX, eventId);
         return eventId;
     }
 
@@ -186,8 +195,8 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
      * Add an exception statement either as a batch or execute immediately if
      * batch updates are not supported.
      */
-    void updateExceptionStatement(PreparedStatement exceptionStatement, String txt, short i, String eventId) throws SQLException {
-        exceptionStatement.setString(1, eventId);
+    void updateExceptionStatement(PreparedStatement exceptionStatement, String txt, short i, Long eventId) throws SQLException {
+        exceptionStatement.setLong(1, eventId);
         exceptionStatement.setShort(2, i);
         exceptionStatement.setString(3, txt);
         if (cnxSupportsBatchUpdates) {
@@ -197,7 +206,7 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
         }
     }
 
-    short buildExceptionStatement(IThrowableProxy tp, short baseIndex, PreparedStatement insertExceptionStatement, String eventId) throws SQLException {
+    short buildExceptionStatement(IThrowableProxy tp, short baseIndex, PreparedStatement insertExceptionStatement, Long eventId) throws SQLException {
 
         StringBuilder buf = new StringBuilder();
         ThrowableProxyUtil.subjoinFirstLine(buf, tp);
@@ -221,7 +230,7 @@ public class DBAppender extends DBAppenderBase<ILoggingEvent> {
         return baseIndex;
     }
 
-    protected void insertThrowable(IThrowableProxy tp, Connection connection, String eventId) throws SQLException {
+    protected void insertThrowable(IThrowableProxy tp, Connection connection, Long eventId) throws SQLException {
 
         PreparedStatement exceptionStatement = null;
         try {
